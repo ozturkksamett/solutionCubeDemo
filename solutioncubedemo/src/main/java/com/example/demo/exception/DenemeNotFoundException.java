@@ -1,4 +1,4 @@
-package com.example.exception;
+package com.example.demo.exception;
 
 public class DenemeNotFoundException extends RuntimeException {
 	/**
