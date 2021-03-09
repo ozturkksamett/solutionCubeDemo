@@ -1,7 +1,14 @@
 package com.example.demo.controller;
 
-import java.util.List;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dao.Deneme;
 import com.example.demo.dao.DenemeRepository;
 import com.example.demo.exception.DenemeNotFoundException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+
 
 @RestController
 public class DenemeController {
@@ -31,6 +48,43 @@ public class DenemeController {
 		return "Hello World!";
 	}
 
+	
+	@RequestMapping("/ekle")
+	public void addNewValue() throws UnirestException, IOException {
+		List<Deneme> denemeler = new ArrayList<Deneme>();
+		
+	
+		
+		
+		
+		
+		OkHttpClient client = new OkHttpClient();
+
+		Request request = new Request.Builder()
+		  .url("https://api.triomobil.com/facility/v1/sensors?_sortBy=label&_sortOrder=ASC&_page=1&_perPage=20")
+		  .get()
+		  .addHeader("authorization", "971b8df0-444d-4115-b46d-7ee840ac97b6")
+		  .build();
+		Response response = client.newCall(request).execute();
+		
+		String jsonData = response.body().string();
+		System.out.println(jsonData);
+		
+		JSONArray jsonArray = new JSONArray(jsonData);
+
+		for (int i = 0; i < jsonArray.length(); i++)
+		{
+			Deneme deneme = new Deneme();
+		    String post_id = jsonArray.getJSONObject(i).getString("_id");
+		    deneme.setKolon1(post_id);
+		    denemeler.add(deneme);
+		    System.out.println(post_id);
+		}
+
+		repository.saveAll(denemeler);
+	
+	}
+	
 	@GetMapping("/denemeler")
 	List<Deneme> all() {
 		return repository.findAll();

@@ -16,10 +16,11 @@ public class Deneme {
 
 	private String kolon1;
 
-	Deneme() {
+	public Deneme() {
+		
 	}
 
-	Deneme(Long iddeneme, String kolon1) {
+	public Deneme(Long iddeneme, String kolon1) {
 
 		this.iddeneme = iddeneme;
 		this.kolon1 = kolon1;
