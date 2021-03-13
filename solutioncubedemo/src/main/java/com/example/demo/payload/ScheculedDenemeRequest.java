@@ -3,15 +3,15 @@ package com.example.demo.payload;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.sun.istack.NotNull;
+import com.mongodb.lang.NonNull;
 
 	
 public class ScheculedDenemeRequest {
 	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]")
-	@NotNull
+	@NonNull
 	private LocalDateTime dateTime;
 	
-	@NotNull
+	@NonNull
 	private int scheculeInterval;
 
 

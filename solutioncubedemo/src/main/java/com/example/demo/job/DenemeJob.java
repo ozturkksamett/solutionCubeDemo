@@ -17,8 +17,7 @@ public class DenemeJob extends QuartzJobBean  {
 	@Override
 	protected void executeInternal (JobExecutionContext jobExecutionContext) throws JobExecutionException {
 		
-		denemeTask.execute();
-		
+		denemeTask.execute();		
 	}
 
 }
