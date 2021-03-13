@@ -1,21 +1,17 @@
 package com.example.demo.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.validation.Valid;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -25,7 +21,6 @@ import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +30,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dao.Deneme;
@@ -44,19 +38,11 @@ import com.example.demo.exception.DenemeNotFoundException;
 import com.example.demo.job.DenemeJob;
 import com.example.demo.payload.ScheculedDenemeRequest;
 import com.example.demo.payload.ScheculedDenemeResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.util.JSON;
-import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +51,9 @@ public class DenemeController {
 
 	@Autowired
 	private final DenemeRepository repository;
+	
 	@Autowired
 	private Scheduler scheduler;
-
-	@Autowired
-	private MongoTemplate mongoTemplate;
 
 	private static final Logger logger = LoggerFactory.getLogger(DenemeController.class);
 
@@ -79,15 +63,6 @@ public class DenemeController {
 
 	@RequestMapping("/")
 	public String home() {
-
-		String json = "{ 'name' : 'lokesh' , " + "'website' : 'howtodoinjava.com' , "
-				+ "'address' : { 'addressLine1' : 'Some address' , " + "'addressLine2' : 'Karol Bagh' , "
-				+ "'addressLine3' : 'New Delhi, India'}" + "}";
-		System.out.println("json oluştu");
-		DBObject dbObject = (DBObject) JSON.parse(json);
-		System.out.println("json parse");
-		mongoTemplate.insert(dbObject,"HırrıkErgün");
-
 		return "Hello World!";
 	}
 
@@ -157,33 +132,33 @@ public class DenemeController {
 	public ResponseEntity<ScheculedDenemeResponse> scheduleDeneme(
 			@Valid @RequestBody ScheculedDenemeRequest scheculedDenemeRequest) {
 
-		Calendar c = Calendar.getInstance();
-
-		System.out.println("datetime alındı" + scheculedDenemeRequest.getDateTime());
-
-		TimeZone tz = c.getTimeZone();
 
 		try {
-			System.out.println("ZoneId alındı" + tz.toZoneId());
 
-			ZonedDateTime dateTime = ZonedDateTime.of(scheculedDenemeRequest.getDateTime(), tz.toZoneId());
-			System.out.println("dateTime " + dateTime);
+			Calendar c = Calendar.getInstance();
+			TimeZone tz = c.getTimeZone();
+			ZonedDateTime dateTime = ZonedDateTime.of(scheculedDenemeRequest.getDateTime(), tz.toZoneId());			
 
 			if (dateTime.isBefore(ZonedDateTime.now())) {
 				ScheculedDenemeResponse sheculedDenemeResponse = new ScheculedDenemeResponse(false,
 						"dateTime must be after current time");
 				return ResponseEntity.badRequest().body(sheculedDenemeResponse);
 			}
+			
 			int interval = scheculedDenemeRequest.getScheculeInterval();
+			
 			JobDetail jobDetail = buildJobDetail(scheculedDenemeRequest);
+			
 			Trigger trigger = buildJobTrigger(jobDetail, dateTime, interval);
+			
 			scheduler.scheduleJob(jobDetail, trigger);
+			
 			ScheculedDenemeResponse scheculedDenemeResponse = new ScheculedDenemeResponse(true,
 					jobDetail.getKey().getName(), jobDetail.getKey().getGroup(),
 					"SolutionCube job started Successfully!");
 			return ResponseEntity.ok(scheculedDenemeResponse);
 		} catch (SchedulerException ex) {
-			logger.error("Error scheduling email", ex);
+			logger.error("Error scheduling SolutionCube job", ex);
 			ScheculedDenemeResponse scheculedDenemeResponse = new ScheculedDenemeResponse(false,
 					"Error scheduling email. Please try later!");
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(scheculedDenemeResponse);
@@ -198,15 +173,15 @@ public class DenemeController {
 		 * jobDataMap.put("subject", scheduleEmailRequest.getSubject());
 		 * jobDataMap.put("body", scheduleEmailRequest.getBody());
 		 */
-		return JobBuilder.newJob(DenemeJob.class).withIdentity(UUID.randomUUID().toString(), "email-jobs")
-				.withDescription("Send Email Job").usingJobData(jobDataMap).storeDurably().build();
+		return JobBuilder.newJob(DenemeJob.class).withIdentity(UUID.randomUUID().toString(), "Solutioncube")
+				.withDescription("Insert data into solutioncube mongodb").usingJobData(jobDataMap).storeDurably().build();
 	}
 
 	private Trigger buildJobTrigger(JobDetail jobDetail, ZonedDateTime startAt, int interval) {
 		return TriggerBuilder.newTrigger().forJob(jobDetail)
 				.withIdentity(jobDetail.getKey().getName(), "SolutionCube insert Data")
 				.withDescription("SolutionCube tablolarını besler").startAt(Date.from(startAt.toInstant()))
-				.withSchedule(SimpleScheduleBuilder.simpleSchedule().repeatHourlyForever(24)).build();
+				.withSchedule(SimpleScheduleBuilder.repeatHourlyForever(24)).build();
 	}
 
 }
