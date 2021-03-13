@@ -11,7 +11,7 @@ public class DenemeTask {
     @Autowired
 	private Task task;
     
-    private final String COLLECTION_NAME = this.getClass().getName().substring(0, this.getClass().getName().length() - 3); 
+    private final String COLLECTION_NAME = this.getClass().getName().substring(0, this.getClass().getName().length() - 4); 
     
 	public void execute() {
 		

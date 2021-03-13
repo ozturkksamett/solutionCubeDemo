@@ -46,7 +46,7 @@ public class Task {
 			BasicDBList dbList = new BasicDBList();
 			dbList.addAll(parse);
 			DBObject dbObject = dbList;
-			mongoTemplate.insert(dbObject,collectionName);					
+			mongoTemplate.insert(dbObject, collectionName);					
 		} catch (IOException e) {
 			logger.error("Error execute job " + collectionName, e);
 			e.printStackTrace();

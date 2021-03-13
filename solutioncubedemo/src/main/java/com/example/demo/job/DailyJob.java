@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import com.example.demo.job.task.DenemeTask;
 
 @Component
-public class DenemeJob extends QuartzJobBean  {
+public class DailyJob extends QuartzJobBean  {
 	
 	@Autowired
 	DenemeTask denemeTask;

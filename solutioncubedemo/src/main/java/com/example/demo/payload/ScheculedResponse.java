@@ -3,16 +3,16 @@ package com.example.demo.payload;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ScheculedDenemeResponse {
+public class ScheculedResponse {
 	private boolean success;
 	private String jobId;
 	private String jobGroup;
 	private String message;
-	public ScheculedDenemeResponse(boolean success, String message) {
+	public ScheculedResponse(boolean success, String message) {
 		this.success = success;
 		this.message = message;
 	}
-	public ScheculedDenemeResponse(boolean success, String jobId, String jobGroup, String message) {
+	public ScheculedResponse(boolean success, String jobId, String jobGroup, String message) {
 		this.success = success;
 		this.jobId = jobId;
 		this.jobGroup = jobGroup;
