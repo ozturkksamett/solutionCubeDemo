@@ -2,54 +2,51 @@ package com.example.demo.job;
 
 import java.io.IOException;
 
-import org.bson.BsonArray;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
-import com.example.demo.job.task.DenemeTask;
-import com.mongodb.BasicDBList;
-import com.mongodb.DBObject;
+import com.mongodb.BasicDBObject;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
 @Component
 public class Task {
-
-    @Autowired
-    private Environment env;
 	
 	@Autowired
-	private MongoTemplate mongoTemplate;
-	
-	private static final Logger logger = LoggerFactory.getLogger(DenemeTask.class);
-	
-	public void execute(String uri, String collectionName){
+	JobParameter jobParameter;
 
-		String token = ProxyToken.generateToken(env.getProperty("spring.security.user.name"), env.getProperty("spring.security.user.password"));
-		
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
+	private static final Logger logger = LoggerFactory.getLogger(Task.class);
+
+	public void execute(String uri, String collectionName) { 
+
 		OkHttpClient client = new OkHttpClient();
-		Request request = new Request.Builder()
-		  .url(uri)
-		  .get()
-		  .addHeader("authorization", token)
-		  .build();
-		
-		try {			
+		Request request = new Request.Builder().url(uri).get().addHeader("authorization", jobParameter.getToken()).build();
+
+		try {
+
 			Response response = client.newCall(request).execute();
 			String jsonData = response.body().string();
-			BsonArray parse = BsonArray.parse(jsonData);
-			BasicDBList dbList = new BasicDBList();
-			dbList.addAll(parse);
-			DBObject dbObject = dbList;
-			mongoTemplate.insert(dbObject, collectionName);					
+			System.out.println("jsonData:"+jsonData);
+			JSONArray jsonArray = new JSONArray(jsonData);
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+
+				JSONObject jsonObject = jsonArray.getJSONObject(i);				
+				BasicDBObject basicDBObject = BasicDBObject.parse(jsonObject.toString());
+				mongoTemplate.insert(basicDBObject, collectionName);
+			}
 		} catch (IOException e) {
 			logger.error("Error execute job " + collectionName, e);
 			e.printStackTrace();
-		}	
+		}
 	}
 }

@@ -16,6 +16,7 @@ import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.job.DailyJob;
+import com.example.demo.job.OneTimeJob;
 import com.example.demo.payload.ScheculedRequest;
 import com.example.demo.payload.ScheculedResponse;
 
@@ -32,6 +34,12 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 public class JobController {
+
+	@Autowired
+	private Environment env;
+	
+	@Autowired
+	private OneTimeJob oneTimeJob;
 	
 	@Autowired
 	private Scheduler scheduler;
@@ -58,6 +66,8 @@ public class JobController {
 						"DateTime must be after current time");
 				return ResponseEntity.badRequest().body(sheculedResponse);
 			}
+			
+			oneTimeJob.execute();
 			
 			JobDetail jobDetail = buildJobDetail(scheculedRequest);
 			
@@ -87,7 +97,7 @@ public class JobController {
 		return TriggerBuilder.newTrigger().forJob(jobDetail)
 				.withIdentity(jobDetail.getKey().getName(), "SolutionCube")
 				.withDescription("SolutionCube tablolarını besler").startAt(Date.from(startAt.toInstant()))
-				.withSchedule(SimpleScheduleBuilder.repeatHourlyForever(24)).build();
+				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(Integer.parseInt(env.getProperty("custom.intervalAsMinutes")))).build();
 	}
 
 }
