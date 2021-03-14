@@ -33,7 +33,7 @@ public class JobParameter {
 		this.sinceDate = generateDate(LocalDateTime.now().minusMinutes(Integer.parseInt(env.getProperty("custom.intervalAsMinutes"))));
 		this.tillDate = generateDate(LocalDateTime.now());
 	}
-
+ 
 	private String generateDate(LocalDateTime date) {
 		
 		//ex:2021-03-14T01%3A14%3A00.000%2B00%3A00
